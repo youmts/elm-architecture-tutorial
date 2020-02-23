@@ -15,23 +15,28 @@ main =
 
 -- MODEL
 
-
 type alias Model =
+  { name : String
+  , age : Int
+  , password : String
+  }
+
+type alias ViewModel =
   { name : String
   , age : String
   , password : String
   , passwordAgain : String
-  , submitted : Bool
+  , result : Maybe (Result String Model)
   }
 
 
-init : Model
+init : ViewModel
 init =
   { name = ""
   , age = ""
   , password = ""
   , passwordAgain = ""
-  , submitted = False
+  , result = Nothing
   }
 
 
@@ -46,34 +51,34 @@ type Msg
   | PasswordAgain String
   | Submit
 
-update : Msg -> Model -> Model
-update msg model =
+update : Msg -> ViewModel -> ViewModel
+update msg vm =
   case msg of
     Name name ->
-      { model | name = name }
+      { vm | name = name }
 
     Age age ->
-      { model | age = age }
+      { vm | age = age }
 
     Password password ->
-      { model | password = password }
+      { vm | password = password }
 
     PasswordAgain password ->
-      { model | passwordAgain = password }
+      { vm | passwordAgain = password }
 
     Submit ->
-      { model | submitted = True}
+      { vm | result = Just (toModel vm) }
 
 -- VIEW
 
-view : Model -> Html Msg
-view model =
+view : ViewModel -> Html Msg
+view vm =
   div []
-    [ viewInput "text" "Name" model.name Name
-    , viewInput "age" "Age" model.age Age
-    , viewInput "password" "Password" model.password Password
-    , viewInput "password" "Re-enter Password" model.passwordAgain PasswordAgain
-    , viewValidation model
+    [ viewInput "text" "Name" vm.name Name
+    , viewInput "age" "Age" vm.age Age
+    , viewInput "password" "Password" vm.password Password
+    , viewInput "password" "Re-enter Password" vm.passwordAgain PasswordAgain
+    , viewValidation vm.result
     , button [ onClick Submit ] [ text "submit" ]
     ]
 
@@ -81,24 +86,37 @@ viewInput : String -> String -> String -> (String -> msg) -> Html msg
 viewInput t p v toMsg = 
   input [ type_ t, placeholder p, value v, onInput toMsg ] []
 
-viewValidation : Model -> Html msg
-viewValidation model =
-  if not model.submitted then
-    div [ ] [ ]
-  else if String.toInt model.age == Nothing then
-    viewNG "Age is not number!"
-  else if String.length model.password < 8 then
-    viewNG "Password leth than 8 characters!"
-  else if not (String.any Char.isDigit model.password) then
-    viewNG "Password must contain digit!"
-  else if not (String.any Char.isUpper model.password) then
-    viewNG "Password must contain upper character!"
-  else if not (String.any Char.isLower model.password) then
-    viewNG "Password must contain lower character!"
-  else if model.password /= model.passwordAgain then
-    viewNG "Password do not match!"
-  else
-    div [ style "color" "green" ] [ text "OK" ]
+viewValidation : Maybe (Result String Model) -> Html msg
+viewValidation result =
+
+  case result of
+    Nothing -> 
+      div [ ] [ ]
+    Just justResult ->
+      case justResult of
+        Ok _ ->
+          div [ style "color" "green" ] [ text "OK" ]
+        Err message ->
+          viewNG message
+
+toModel : ViewModel -> Result String Model
+toModel vm = 
+  case String.toInt vm.age of
+    Nothing ->
+      Err "Age is not number!"
+    Just ageInt ->
+      if String.length vm.password < 8 then
+        Err "Password leth than 8 characters!"
+      else if not (String.any Char.isDigit vm.password) then
+        Err "Password must contain digit!"
+      else if not (String.any Char.isUpper vm.password) then
+        Err "Password must contain upper character!"
+      else if not (String.any Char.isLower vm.password) then
+        Err "Password must contain lower character!"
+      else if vm.password /= vm.passwordAgain then
+        Err "Password do not match!"
+      else
+        Ok (Model vm.name ageInt vm.password)
 
 viewNG : String -> Html msg
 viewNG message = 
