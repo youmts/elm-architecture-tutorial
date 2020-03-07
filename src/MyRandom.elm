@@ -4,6 +4,7 @@ import Browser
 import Html exposing (..)
 import Html.Events exposing(..)
 import Random
+import Task
 
 main = 
   Browser.element
@@ -18,10 +19,11 @@ type alias Model =
   , dieFaceTwo : Int
   }
   
+-- https://medium.com/elm-shorts/how-to-turn-a-msg-into-a-cmd-msg-in-elm-5dd095175d84
 init : () -> (Model, Cmd Msg)
 init _ =
   ( Model 1 1
-  , Cmd.none
+  , send Roll
   )
 
 type Msg
@@ -60,3 +62,8 @@ view model =
     , h1 [] [ text (String.fromInt model.dieFaceTwo ) ]
     , button [ onClick Roll ] [ text "Roll" ]
     ]
+
+send: Msg -> Cmd Msg
+send msg =
+  Task.succeed msg
+  |> Task.perform identity
