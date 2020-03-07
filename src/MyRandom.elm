@@ -2,8 +2,11 @@ module MyRandom exposing (main)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (src)
 import Html.Events exposing(..)
+import Svg exposing (..)
+import Svg.Attributes exposing (..)
+import List exposing (singleton, append)
 import Random
 import Task
 
@@ -76,22 +79,49 @@ view model =
   div []
     [ dieView model.dieFaceOne
     , dieView model.dieFaceTwo
-    , button [ onClick Roll ] [ text "Roll" ]
+    , button [ onClick Roll ] [ Html.text "Roll" ]
     ]
 
 dieView : Die -> Html Msg
 dieView dieFace =
-  img [ src (dieToUrl dieFace) ] []
-
-dieToUrl : Die -> String
-dieToUrl dieFace =
   case dieFace of
-    F1 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480437/480437m.jpg"
-    F2 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480440/480440m.jpg"
-    F3 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480441/480441m.jpg"
-    F4 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480452/480452m.jpg"
-    F5 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480455/480455m.jpg"
-    F6 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480457/480457m.jpg"
+    F1 -> dieSvg 
+      [ circle
+        [ cx "60"
+        , cy "60"
+        , r "15"
+        , fill "red"
+        ]
+        []
+      ]
+    F2 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480440/480440m.jpg" ] []
+    F3 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480441/480441m.jpg" ] []
+    F4 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480452/480452m.jpg" ] []
+    F5 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480455/480455m.jpg" ] []
+    F6 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480457/480457m.jpg" ] []
+
+dieSvg: List (Svg Msg) -> Svg Msg
+dieSvg list =
+  svg
+    [ width "120"
+    , height "120"
+    , viewBox "0 0 120 120"
+    ]
+    (append (singleton dieRect) list)
+
+dieRect: Svg Msg
+dieRect =
+  rect 
+    [ x "10"
+    , y "10"
+    , width "100"
+    , height "100"
+    , rx "10"
+    , ry "10"
+    , fill "white"
+    , stroke "black"
+    ]
+    []
 
 send: Msg -> Cmd Msg
 send msg =
