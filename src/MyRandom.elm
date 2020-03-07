@@ -32,7 +32,14 @@ type Msg
 
 die : Random.Generator Int
 die = 
-  Random.int 1 6
+  Random.weighted
+    (10, 1)
+    [ (10, 2)
+    , (10, 3)
+    , (50, 4)
+    , (50, 5)
+    , (50, 6)
+    ]
 
 roll : Random.Generator Model
 roll =
