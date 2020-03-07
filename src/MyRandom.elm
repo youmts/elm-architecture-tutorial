@@ -2,6 +2,7 @@ module MyRandom exposing (main)
 
 import Browser
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing(..)
 import Random
 import Task
@@ -14,15 +15,23 @@ main =
     , view = view
     }
 
+type Die
+  = F1
+  | F2
+  | F3
+  | F4
+  | F5
+  | F6
+
 type alias Model = 
-  { dieFaceOne : Int
-  , dieFaceTwo : Int
+  { dieFaceOne : Die
+  , dieFaceTwo : Die
   }
   
 -- https://medium.com/elm-shorts/how-to-turn-a-msg-into-a-cmd-msg-in-elm-5dd095175d84
 init : () -> (Model, Cmd Msg)
 init _ =
-  ( Model 1 1
+  ( Model F1 F1
   , send Roll
   )
 
@@ -30,15 +39,15 @@ type Msg
     = Roll
     | NewFace Model
 
-die : Random.Generator Int
+die : Random.Generator Die
 die = 
   Random.weighted
-    (10, 1)
-    [ (10, 2)
-    , (10, 3)
-    , (50, 4)
-    , (50, 5)
-    , (50, 6)
+    (10, F1)
+    [ (10, F2)
+    , (10, F3)
+    , (10, F4)
+    , (10, F5)
+    , (10, F6)
     ]
 
 roll : Random.Generator Model
@@ -65,10 +74,24 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div []
-    [ h1 [] [ text (String.fromInt model.dieFaceOne ) ]
-    , h1 [] [ text (String.fromInt model.dieFaceTwo ) ]
+    [ dieView model.dieFaceOne
+    , dieView model.dieFaceTwo
     , button [ onClick Roll ] [ text "Roll" ]
     ]
+
+dieView : Die -> Html Msg
+dieView dieFace =
+  img [ src (dieToUrl dieFace) ] []
+
+dieToUrl : Die -> String
+dieToUrl dieFace =
+  case dieFace of
+    F1 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480437/480437m.jpg"
+    F2 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480440/480440m.jpg"
+    F3 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480441/480441m.jpg"
+    F4 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480452/480452m.jpg"
+    F5 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480455/480455m.jpg"
+    F6 -> "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480457/480457m.jpg"
 
 send: Msg -> Cmd Msg
 send msg =
