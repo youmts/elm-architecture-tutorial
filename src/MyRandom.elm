@@ -94,11 +94,36 @@ dieView dieFace =
         ]
         []
       ]
-    F2 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480440/480440m.jpg" ] []
-    F3 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480441/480441m.jpg" ] []
-    F4 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480452/480452m.jpg" ] []
-    F5 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480455/480455m.jpg" ] []
-    F6 -> img [ src "https://d3cpdjqy5ztwui.cloudfront.net/illust_data/000480/480457/480457m.jpg" ] []
+    F2 -> dieSvg 
+      [ dieBlackPoint 40 40
+      , dieBlackPoint 80 80
+      ]
+    F3 -> dieSvg 
+      [ dieBlackPoint 35 35
+      , dieBlackPoint 60 60
+      , dieBlackPoint 85 85
+      ]
+    F4 -> dieSvg 
+      [ dieBlackPoint 40 40
+      , dieBlackPoint 40 80
+      , dieBlackPoint 80 40
+      , dieBlackPoint 80 80
+      ]
+    F5 -> dieSvg 
+      [ dieBlackPoint 35 35
+      , dieBlackPoint 35 85
+      , dieBlackPoint 85 35
+      , dieBlackPoint 85 85
+      , dieBlackPoint 60 60
+      ]
+    F6 -> dieSvg 
+      [ dieBlackPoint 40 35
+      , dieBlackPoint 40 60 
+      , dieBlackPoint 40 85
+      , dieBlackPoint 80 35
+      , dieBlackPoint 80 60 
+      , dieBlackPoint 80 85
+      ]
 
 dieSvg: List (Svg Msg) -> Svg Msg
 dieSvg list =
@@ -120,6 +145,16 @@ dieRect =
     , ry "10"
     , fill "white"
     , stroke "black"
+    ]
+    []
+
+dieBlackPoint: Int -> Int -> Svg Msg
+dieBlackPoint x y = 
+  circle
+    [ cx (String.fromInt x)
+    , cy (String.fromInt y)
+    , r "10"
+    , fill "black"
     ]
     []
 
