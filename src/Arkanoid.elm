@@ -28,8 +28,17 @@ type alias Ball =
   , velocity : Vector
   , radius : Float
   }
+
+type alias Block = 
+  {
+    position : Vector
+  , height : Float
+  , width : Float
+  }
+
 type alias Model =
   { ball : Ball
+  -- , blocks : List Block
   }
 init : () -> (Model, Cmd Msg)
 init _ =
@@ -106,10 +115,10 @@ view model =
     ]
 
 fieldWidth : Float
-fieldWidth = 600
+fieldWidth = 400
 
 fieldHeight : Float
-fieldHeight = 800
+fieldHeight = 600
 
 gameField : Model -> Html Msg
 
@@ -117,7 +126,8 @@ gameField model =
   svg
     [ width (fromFloat fieldWidth)
     , height (fromFloat fieldHeight)
-    , viewBox "0 0 600 800" ]
+    , viewBox ("0 0 " ++ fromFloat fieldWidth ++ " " ++ fromFloat fieldHeight)
+    ]
     [
       rect
         [ x "0"
