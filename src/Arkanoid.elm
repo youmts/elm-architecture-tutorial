@@ -62,7 +62,7 @@ blockHeight = fieldHeight / blockNumY
 init : () -> (Model, Cmd Msg)
 init _ =
   ( Model 
-      (Ball (Vector 50 100) (Vector 5 5) 5)
+      (Ball (Vector 50 100) (Vector 3 3) 5)
       (List.range 3 7 |> List.map toFloat |> List.concatMap initBlockRow)
       
   , send Nothing
@@ -91,23 +91,31 @@ update msg model =
     Nothing ->
       (model, Cmd.none)
     Tick _ ->
-      ( { model | ball = model.ball |> moveBall |> collisionBall }
-      , Cmd.none
-      )
+      let
+        (blocks, ball) = model.ball |> moveBall |> collisionBall model.blocks
+      in
+        ( { model | ball = ball, blocks = blocks }
+        , Cmd.none
+        )
 
 moveBall : Ball -> Ball
 moveBall old =
   { old | position = addVector old.position old.velocity}
 
-collisionBall : Ball -> Ball
-collisionBall old =
+collisionBall : List Block -> Ball -> (List Block, Ball)
+collisionBall oldBlocks oldBall =
   -- TODO XもYもぶつかるケースを考慮する
-  { old |
-    velocity = 
-      if collisionX old then reverseX old.velocity
-      else if collisionY old then reverseY old.velocity
-      else old.velocity
-  }
+  let
+    newVelocity = 
+      if collisionX oldBall then reverseX oldBall.velocity
+      else if collisionY oldBall then reverseY oldBall.velocity
+      else oldBall.velocity
+  in
+    ( oldBlocks
+    , { oldBall |
+      velocity = newVelocity
+      }
+    )
 
 collisionX : Ball -> Bool
 collisionX ball =
