@@ -32,21 +32,49 @@ type alias Ball =
 type alias Block = 
   {
     position : Vector
-  , height : Float
   , width : Float
+  , height : Float
   }
 
 type alias Model =
   { ball : Ball
-  -- , blocks : List Block
+  , blocks : List Block
   }
+
+fieldWidth : Float
+fieldWidth = 400
+
+fieldHeight : Float
+fieldHeight = 600
+
+blockNumX : Float
+blockNumX = 10
+
+blockNumY : Float
+blockNumY = 30
+
+blockWidth : Float
+blockWidth = fieldWidth / blockNumX
+
+blockHeight : Float
+blockHeight = fieldHeight / blockNumY
+
 init : () -> (Model, Cmd Msg)
 init _ =
   ( Model 
-    ( Ball (Vector 50 100) (Vector 5 5) 10
-    )
+      (Ball (Vector 50 100) (Vector 5 5) 5)
+      (List.range 3 7 |> List.map toFloat |> List.concatMap initBlockRow)
+      
   , send Nothing
   )
+
+initBlockRow : Float -> List Block
+initBlockRow  indexY =
+  List.range 0 9 |> List.map toFloat |> List.map (initBlock (blockHeight * indexY))
+
+initBlock : Float -> Float -> Block
+initBlock y indexX =
+  Block (Vector (blockWidth * indexX) y) blockWidth blockHeight 
 
 type Msg
     = Nothing
@@ -114,12 +142,6 @@ view model =
     [ gameField model
     ]
 
-fieldWidth : Float
-fieldWidth = 400
-
-fieldHeight : Float
-fieldHeight = 600
-
 gameField : Model -> Html Msg
 
 gameField model =
@@ -128,18 +150,19 @@ gameField model =
     , height (fromFloat fieldHeight)
     , viewBox ("0 0 " ++ fromFloat fieldWidth ++ " " ++ fromFloat fieldHeight)
     ]
-    [
-      rect
-        [ x "0"
-        , y "0"
-        , width (fromFloat fieldWidth)
-        , height (fromFloat fieldHeight)
-        , fill "black"
-        ]
-        [ 
-        ]
-    , svgBall model.ball
-    ]
+    ( List.append [
+        rect
+          [ x "0"
+          , y "0"
+          , width (fromFloat fieldWidth)
+          , height (fromFloat fieldHeight)
+          , fill "black"
+          ]
+          [ 
+          ]
+      , svgBall model.ball
+      ] (model.blocks |> List.map svgBlock)
+    )
 
 svgBall : Ball -> Html Msg
 svgBall ball =
@@ -148,6 +171,18 @@ svgBall ball =
     , cy (fromFloat ball.position.y)
     , r (fromFloat ball.radius)
     , fill "red"
+    ]
+    []
+
+svgBlock : Block -> Svg Msg
+svgBlock block =
+  rect
+    [ x (fromFloat block.position.x)
+    , y (fromFloat block.position.y)
+    , width (fromFloat block.width)
+    , height (fromFloat block.height)
+    , fill "white"
+    , stroke "black"
     ]
     []
 
