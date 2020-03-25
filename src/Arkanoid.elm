@@ -60,6 +60,7 @@ moveBall old =
 
 collisionBall : Ball -> Ball
 collisionBall old =
+  -- TODO XもYもぶつかるケースを考慮する
   { old |
     velocity = 
       if collisionX old.position then reverseX old.velocity
@@ -90,7 +91,7 @@ reverseY old =
   (Tuple.first old, -(Tuple.second old))
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
   onAnimationFrameDelta Tick
 
 view : Model -> Html Msg
