@@ -62,7 +62,7 @@ blockHeight = fieldHeight / blockNumY
 init : () -> (Model, Cmd Msg)
 init _ =
   ( Model 
-      (Ball (Vector 50 100) (Vector 3 3) 5)
+      (Ball (Vector 50 400) (Vector 3 3) 5)
       (List.range 3 7 |> List.map toFloat |> List.concatMap initBlockRow)
       
   , send Nothing
