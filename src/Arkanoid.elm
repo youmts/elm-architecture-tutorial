@@ -77,14 +77,14 @@ collisionX ball =
   let
     x = ball.position.x
   in
-    x < ball.radius || x > w - ball.radius
+    x < ball.radius || x > fieldWidth - ball.radius
 
 collisionY : Ball -> Bool
 collisionY ball =
   let
     y = ball.position.y
   in
-    y < ball.radius || y > h - ball.radius
+    y < ball.radius || y > fieldHeight - ball.radius
 
 reverseX : Vector -> Vector
 reverseX old = 
@@ -105,25 +105,25 @@ view model =
     [ gameField model
     ]
 
-w : Float
-w = 600
+fieldWidth : Float
+fieldWidth = 600
 
-h : Float
-h = 800
+fieldHeight : Float
+fieldHeight = 800
 
 gameField : Model -> Html Msg
 
 gameField model =
   svg
-    [ width (fromFloat w)
-    , height (fromFloat h)
+    [ width (fromFloat fieldWidth)
+    , height (fromFloat fieldHeight)
     , viewBox "0 0 600 800" ]
     [
       rect
         [ x "0"
         , y "0"
-        , width (fromFloat w)
-        , height (fromFloat h)
+        , width (fromFloat fieldWidth)
+        , height (fromFloat fieldHeight)
         , fill "black"
         ]
         [ 
