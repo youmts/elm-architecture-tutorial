@@ -18,11 +18,15 @@ main =
     , view = view
     }
 
-type alias Vector = (Float, Float)
+type alias Vector = 
+  { x : Float
+  , y : Float
+  }
 
 type alias Ball = 
   { position : Vector
   , velocity : Vector
+  , radius : Float
   }
 type alias Model =
   { ball : Ball
@@ -30,7 +34,7 @@ type alias Model =
 init : () -> (Model, Cmd Msg)
 init _ =
   ( Model 
-    ( Ball (0, 100) (5, 5)
+    ( Ball (Vector 50 100) (Vector 5 5) 10
     )
   , send Nothing
   )
@@ -63,32 +67,32 @@ collisionBall old =
   -- TODO XもYもぶつかるケースを考慮する
   { old |
     velocity = 
-      if collisionX old.position then reverseX old.velocity
-      else if collisionY old.position then reverseY old.velocity
+      if collisionX old then reverseX old.velocity
+      else if collisionY old then reverseY old.velocity
       else old.velocity
   }
 
-collisionX : Vector -> Bool
-collisionX pos =
+collisionX : Ball -> Bool
+collisionX ball =
   let
-    x = Tuple.first pos
+    x = ball.position.x
   in
-    x < 0 || x > w
+    x < ball.radius || x > w - ball.radius
 
-collisionY : Vector -> Bool
-collisionY pos =
+collisionY : Ball -> Bool
+collisionY ball =
   let
-    y = Tuple.second pos
+    y = ball.position.y
   in
-    y < 0 || y > h
+    y < ball.radius || y > h - ball.radius
 
 reverseX : Vector -> Vector
 reverseX old = 
-  (-(Tuple.first old), Tuple.second old)
+  Vector -old.x old.y
 
 reverseY : Vector -> Vector
 reverseY old = 
-  (Tuple.first old, -(Tuple.second old))
+  Vector old.x -old.y
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -124,19 +128,19 @@ gameField model =
         ]
         [ 
         ]
-    , svgBall model.ball.position
+    , svgBall model.ball
     ]
 
-svgBall : Vector -> Html Msg
-svgBall (x, y) =
+svgBall : Ball -> Html Msg
+svgBall ball =
   circle
-    [ cx (fromFloat x)
-    , cy (fromFloat y)
-    , r "10"
+    [ cx (fromFloat ball.position.x)
+    , cy (fromFloat ball.position.y)
+    , r (fromFloat ball.radius)
     , fill "red"
     ]
     []
 
 addVector : Vector -> Vector -> Vector
 addVector a b =
-   (Tuple.first a + Tuple.first b, Tuple.second a + Tuple.second b)
+  Vector (a.x + b.x) (a.y + b.y)
