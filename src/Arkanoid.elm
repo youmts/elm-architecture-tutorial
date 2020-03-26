@@ -102,34 +102,64 @@ moveBall : Ball -> Ball
 moveBall old =
   { old | position = addVector old.position old.velocity}
 
+type ReflectDirection
+  = Keep
+  | KeepForce
+  | Change Float
+
+mergeReflect : ReflectDirection -> ReflectDirection -> ReflectDirection
+mergeReflect base new =
+  case base of
+    Keep -> new
+    KeepForce -> KeepForce
+    Change baseValue ->
+      case new of
+        Keep -> Change baseValue
+        KeepForce -> KeepForce
+        Change newValue -> if baseValue * newValue < 0 then KeepForce else Change baseValue
+
+changeSign : Float -> Float -> Float
+changeSign sign value = sign * sqrt (value * value)
+
 collisionBall : List Block -> Ball -> (List Block, Ball)
 collisionBall oldBlocks oldBall =
   -- TODO XもYもぶつかるケースを考慮する
   let
-    newVelocity = 
-      if collisionX oldBall then reverseX oldBall.velocity
-      else if collisionY oldBall then reverseY oldBall.velocity
-      else oldBall.velocity
+    rx = Keep |> mergeReflect (collisionX oldBall)
+    ry = Keep |> mergeReflect (collisionY oldBall)
+
   in
     ( oldBlocks
     , { oldBall |
-      velocity = newVelocity
+      velocity = Vector 
+        ( case rx of
+          Change v -> changeSign v oldBall.velocity.x
+          _ -> oldBall.velocity.x
+        )
+        ( case ry of
+          Change v -> changeSign v oldBall.velocity.y
+          _ -> oldBall.velocity.y
+        )
       }
     )
 
-collisionX : Ball -> Bool
+collisionX : Ball -> ReflectDirection
 collisionX ball =
   let
     x = ball.position.x
   in
-    x < ball.radius || x > fieldWidth - ball.radius
+    if x < ball.radius then Change 1
+    else if x > fieldWidth - ball.radius then Change -1
+    else Keep
 
-collisionY : Ball -> Bool
+collisionY : Ball -> ReflectDirection
 collisionY ball =
   let
     y = ball.position.y
   in
-    y < ball.radius || y > fieldHeight - ball.radius
+    if y < ball.radius then Change 1
+    else if y > fieldHeight - ball.radius then Change -1
+    else Keep
 
 reverseX : Vector -> Vector
 reverseX old = 
