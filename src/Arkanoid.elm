@@ -39,6 +39,7 @@ type alias Block =
 type alias Model =
   { ball : Ball
   , blocks : List Block
+  , bar : Block
   }
 
 fieldWidth : Float
@@ -64,6 +65,7 @@ init _ =
   ( Model 
       (Ball (Vector 50 400) (Vector 3 3) 5)
       (List.range 3 7 |> List.map toFloat |> List.concatMap initBlockRow)
+      (Block (Vector 150 500) 100 20)
       
   , send Nothing
   )
@@ -92,7 +94,7 @@ update msg model =
       (model, Cmd.none)
     Tick _ ->
       let
-        (blocks, ball) = model.ball |> moveBall |> collisionBall model.blocks
+        (blocks, ball) = model.ball |> moveBall |> collisionBall model.bar model.blocks
       in
         ( { model | ball = ball, blocks = blocks }
         , Cmd.none
@@ -127,10 +129,10 @@ mergeReflect base new =
 changeSign : Float -> Float -> Float
 changeSign sign value = sign * sqrt (value * value)
 
-collisionBall : List Block -> Ball -> (List Block, Ball)
-collisionBall oldBlocks oldBall =
+collisionBall : Block -> List Block -> Ball -> (List Block, Ball)
+collisionBall bar oldBlocks oldBall =
   let
-    blockCollisions = List.map (collisionBallBlock oldBall) oldBlocks
+    blockCollisions = List.map (collisionBallBlock oldBall) (bar :: oldBlocks)
     reflectX = List.foldl mergeReflect (collisionWallX oldBall) (List.map (\n -> n.x) blockCollisions)
     reflectY = List.foldl mergeReflect (collisionWallY oldBall) (List.map (\n -> n.y) blockCollisions)
 
@@ -226,6 +228,7 @@ gameField model =
           [ 
           ]
       , svgBall model.ball
+      , svgBlock model.bar
       ] (model.blocks |> List.map svgBlock)
     )
 
