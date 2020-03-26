@@ -130,21 +130,20 @@ changeSign sign value = sign * sqrt (value * value)
 collisionBall : List Block -> Ball -> (List Block, Ball)
 collisionBall oldBlocks oldBall =
   let
-    bxys = List.map (collisionBallBlock oldBall) oldBlocks
-    rxx = List.foldl mergeReflect (collisionWallX oldBall) (List.map (\n -> n.x) bxys)
-    ryy = List.foldl mergeReflect (collisionWallY oldBall) (List.map (\n -> n.y) bxys)
-
+    blockCollisions = List.map (collisionBallBlock oldBall) oldBlocks
+    reflectX = List.foldl mergeReflect (collisionWallX oldBall) (List.map (\n -> n.x) blockCollisions)
+    reflectY = List.foldl mergeReflect (collisionWallY oldBall) (List.map (\n -> n.y) blockCollisions)
 
   in
     -- TODO: 二重に当たり判定している、上の bxys をつかってfilterするようにする
     ( List.filter (\block -> not (collisionBallBlock oldBall block).collision) oldBlocks
     , { oldBall |
       velocity = Vector 
-        ( case rxx of
+        ( case reflectX of
           Change v -> changeSign v oldBall.velocity.x
           _ -> oldBall.velocity.x
         )
-        ( case ryy of
+        ( case reflectY of
           Change v -> changeSign v oldBall.velocity.y
           _ -> oldBall.velocity.y
         )
