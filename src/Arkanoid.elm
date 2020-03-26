@@ -107,6 +107,12 @@ type ReflectDirection
   | KeepForce
   | Change Float
 
+type alias CollisionResult =
+  { collision : Bool
+  , x : ReflectDirection
+  , y : ReflectDirection
+  }
+
 mergeReflect : ReflectDirection -> ReflectDirection -> ReflectDirection
 mergeReflect base new =
   case base of
@@ -124,26 +130,56 @@ changeSign sign value = sign * sqrt (value * value)
 collisionBall : List Block -> Ball -> (List Block, Ball)
 collisionBall oldBlocks oldBall =
   let
-    rx = Keep |> mergeReflect (collisionX oldBall)
-    ry = Keep |> mergeReflect (collisionY oldBall)
+    bxys = List.map (collisionBallBlock oldBall) oldBlocks
+    rxx = List.foldl mergeReflect (collisionWallX oldBall) (List.map (\n -> n.x) bxys)
+    ryy = List.foldl mergeReflect (collisionWallY oldBall) (List.map (\n -> n.y) bxys)
+
 
   in
     ( oldBlocks
     , { oldBall |
       velocity = Vector 
-        ( case rx of
+        ( case rxx of
           Change v -> changeSign v oldBall.velocity.x
           _ -> oldBall.velocity.x
         )
-        ( case ry of
+        ( case ryy of
           Change v -> changeSign v oldBall.velocity.y
           _ -> oldBall.velocity.y
         )
       }
     )
 
-collisionX : Ball -> ReflectDirection
-collisionX ball =
+intersect : Float -> Float -> Float -> Float -> Bool
+intersect s1 e1 s2 e2 = s1 < e2 && s2 < e1
+
+distance : Vector -> Vector -> Float
+distance a b = sqrt ((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2)
+
+collisionBallBlock : Ball -> Block -> CollisionResult
+collisionBallBlock ball block =
+  let
+    intersectBlockX = intersect block.position.x (block.position.x + block.width)
+    centerBlockX = block.position.x + block.width / 2
+    intersectBlockY = intersect block.position.y (block.position.y + block.height)
+    centerBlockY = block.position.y + block.height / 2
+  in
+    if intersectBlockX ball.position.x ball.position.x then
+      if intersectBlockY (ball.position.y - ball.radius) (ball.position.y + ball.radius) then
+        CollisionResult True Keep (Change (if ball.position.y < centerBlockY then -1 else 1))
+      else
+        CollisionResult False Keep Keep
+    else if intersectBlockY ball.position.y ball.position.y then
+      if intersectBlockX (ball.position.x - ball.radius) (ball.position.x + ball.radius) then
+        CollisionResult True (Change (if ball.position.x < centerBlockX then -1 else 1)) Keep
+      else
+        CollisionResult False Keep Keep
+    else
+      -- TODO: 斜めからあたったとき
+      CollisionResult False Keep Keep
+
+collisionWallX : Ball -> ReflectDirection
+collisionWallX ball =
   let
     x = ball.position.x
   in
@@ -151,8 +187,8 @@ collisionX ball =
     else if x > fieldWidth - ball.radius then Change -1
     else Keep
 
-collisionY : Ball -> ReflectDirection
-collisionY ball =
+collisionWallY : Ball -> ReflectDirection
+collisionWallY ball =
   let
     y = ball.position.y
   in
