@@ -136,7 +136,8 @@ collisionBall oldBlocks oldBall =
 
 
   in
-    ( oldBlocks
+    -- TODO: 二重に当たり判定している、上の bxys をつかってfilterするようにする
+    ( List.filter (\block -> not (collisionBallBlock oldBall block).collision) oldBlocks
     , { oldBall |
       velocity = Vector 
         ( case rxx of
