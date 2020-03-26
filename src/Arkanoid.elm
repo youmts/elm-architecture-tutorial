@@ -123,7 +123,6 @@ changeSign sign value = sign * sqrt (value * value)
 
 collisionBall : List Block -> Ball -> (List Block, Ball)
 collisionBall oldBlocks oldBall =
-  -- TODO XもYもぶつかるケースを考慮する
   let
     rx = Keep |> mergeReflect (collisionX oldBall)
     ry = Keep |> mergeReflect (collisionY oldBall)
@@ -160,14 +159,6 @@ collisionY ball =
     if y < ball.radius then Change 1
     else if y > fieldHeight - ball.radius then Change -1
     else Keep
-
-reverseX : Vector -> Vector
-reverseX old = 
-  Vector -old.x old.y
-
-reverseY : Vector -> Vector
-reverseY old = 
-  Vector old.x -old.y
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
