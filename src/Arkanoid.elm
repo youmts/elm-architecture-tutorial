@@ -9,6 +9,7 @@ import Svg.Attributes exposing (..)
 import Task
 import String exposing (fromFloat)
 import Browser.Events exposing (onAnimationFrameDelta)
+import Json.Decode as Decode
 
 main = 
   Browser.element
@@ -40,6 +41,8 @@ type alias Model =
   { ball : Ball
   , blocks : List Block
   , bar : Block
+  , leftKeyDown : Bool
+  , rightKeyDown : Bool
   }
 
 fieldWidth : Float
@@ -66,6 +69,8 @@ init _ =
       (Ball (Vector 50 400) (Vector 3 3) 5)
       (List.range 3 7 |> List.map toFloat |> List.concatMap initBlockRow)
       (Block (Vector 150 500) 100 20)
+      False
+      False
       
   , send Nothing
   )
@@ -81,6 +86,8 @@ initBlock y indexX =
 type Msg
     = Nothing
     | Tick Float
+    | KeyDown KeyValue
+    | KeyUp KeyValue
 
 send: Msg -> Cmd Msg
 send msg =
@@ -95,14 +102,41 @@ update msg model =
     Tick _ ->
       let
         (blocks, ball) = model.ball |> moveBall |> collisionBall model.bar model.blocks
+        bar = moveBar model model.bar
       in
-        ( { model | ball = ball, blocks = blocks }
+        ( { model | ball = ball, blocks = blocks, bar = bar }
         , Cmd.none
         )
+    KeyDown keyValue ->
+      -- MEMO : 何故か 'd' が捕捉できない
+      case keyValue of
+         Character 'a' -> ( { model | leftKeyDown = True}, Cmd.none )
+         Character 's' -> ( { model | rightKeyDown = True}, Cmd.none )
+         _ -> ( model, Cmd.none )
+    KeyUp keyValue ->
+      case keyValue of
+         Character 'a' -> ( { model | leftKeyDown = False}, Cmd.none )
+         Character 's' -> ( { model | rightKeyDown = False}, Cmd.none )
+         _ -> ( model, Cmd.none )
+      
 
 moveBall : Ball -> Ball
 moveBall old =
   { old | position = addVector old.position old.velocity}
+
+moveBar : Model -> Block -> Block
+moveBar model old =
+  let 
+    move = Vector
+        (
+          (
+            (if model.rightKeyDown && old.position.x + old.width < fieldWidth then 1 else 0)
+          + (if model.leftKeyDown && old.position.x > 0 then -1 else 0)
+          ) * 5
+        ) 0
+  in
+    { old | position = addVector old.position move}
+
 
 type ReflectDirection
   = Keep
@@ -200,7 +234,30 @@ collisionWallY ball =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  onAnimationFrameDelta Tick
+  Sub.batch
+    [ onAnimationFrameDelta Tick
+    , Browser.Events.onKeyDown (Decode.map KeyDown keyDecoder) 
+    , Browser.Events.onKeyUp (Decode.map KeyUp keyDecoder) 
+    ]
+
+-- https://github.com/lenards/elm-example-key-decoding
+
+type KeyValue
+    = Character Char
+    | Control String
+
+keyDecoder : Decode.Decoder KeyValue
+keyDecoder =
+  Decode.map toKeyValue (Decode.field "key" Decode.string)
+
+toKeyValue : String -> KeyValue
+toKeyValue string =
+  case String.uncons string of
+      Just ( char, "" ) ->
+          Character char
+
+      _ ->
+          Control string
 
 view : Model -> Html Msg
 view model =
